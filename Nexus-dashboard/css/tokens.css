@@ -1,0 +1,104 @@
+/* ═══════════════════════════════════════════════════
+   DESIGN TOKENS — Mi Espacio Personal
+   Sistema de diseño editorial warm + gold
+   ═══════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  /* ── Paleta base ── */
+  --cream:        #F4EFE6;
+  --warm-white:   #FDFAF5;
+  --ink:          #1A1714;
+  --ink-light:    #3D3835;
+  --ink-muted:    #7A7370;
+  --ink-xmuted:   #B5AFAB;
+
+  /* ── Acento principal: Gold ── */
+  --gold:         #C4912A;
+  --gold-hover:   #B07D20;
+  --gold-pale:    #FAF0D7;
+  --gold-light:   #F0D98A;
+
+  /* ── Colores semánticos ── */
+  --sage:         #3D7A6C;
+  --sage-light:   #C8EDE6;
+  --sage-pale:    #EDFAF6;
+  --rose:         #9B3D60;
+  --rose-light:   #F8D9E5;
+  --violet:       #5E2DAD;
+  --violet-light: #EAE0FA;
+  --blue:         #1F5FBF;
+  --blue-light:   #DDEEFF;
+  --rust:         #AE4B0A;
+  --amber:        #D97706;
+
+  /* ── UI ── */
+  --border:       #E4DDD4;
+  --border-light: #EDE8E2;
+  --shadow-sm:    0 1px 3px rgba(26,23,20,0.07);
+  --shadow:       0 2px 8px rgba(26,23,20,0.09);
+  --shadow-lg:    0 8px 32px rgba(26,23,20,0.13);
+
+  /* ── Tipografía ── */
+  --font-serif:   'Playfair Display', Georgia, serif;
+  --font-sans:    'DM Sans', system-ui, sans-serif;
+  --font-mono:    'DM Mono', 'Courier New', monospace;
+
+  /* ── Escala tipográfica ── */
+  --text-xs:    0.688rem;   /* 11px */
+  --text-sm:    0.813rem;   /* 13px */
+  --text-base:  0.875rem;   /* 14px */
+  --text-md:    1rem;       /* 16px */
+  --text-lg:    1.125rem;   /* 18px */
+  --text-xl:    1.375rem;   /* 22px */
+  --text-2xl:   1.75rem;    /* 28px */
+  --text-3xl:   2.25rem;    /* 36px */
+
+  /* ── Espaciado ── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+
+  /* ── Radios ── */
+  --radius-sm:  6px;
+  --radius:     10px;
+  --radius-md:  14px;
+  --radius-lg:  18px;
+  --radius-xl:  24px;
+  --radius-pill: 100px;
+
+  /* ── Transiciones ── */
+  --ease:       cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:    cubic-bezier(0.4, 0, 1, 1);
+  --duration:   0.2s;
+
+  /* ── PWA / Mobile First ── */
+  --touch-min:  44px;   /* Mínimo recomendado área táctil (Apple HIG, Material) */
+  --safe-top:   env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:  env(safe-area-inset-left, 0px);
+
+  /* Breakpoints (para referencia; usar en media queries) */
+  /* 360px · 393px (Xiaomi 15) · 480px · 768px · 1024px */
+}
+
+/* Escala de lectura móvil (Xiaomi 15 / 393px) */
+@media (max-width: 480px) {
+  :root {
+    --text-xs:    0.813rem;  /* 13px */
+    --text-sm:    0.938rem;  /* 15px */
+    --text-base:  1rem;      /* 16px */
+    --text-md:    1.063rem;  /* 17px */
+    --text-lg:    1.25rem;   /* 20px */
+    --text-xl:    1.5rem;    /* 24px */
+    --text-2xl:   1.875rem;  /* 30px */
+    --text-3xl:   2.25rem;   /* 36px */
+  }
+}
