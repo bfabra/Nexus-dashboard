@@ -1,0 +1,279 @@
+/* ═══════════════════════════════════════════════════
+   LAYOUT — Mi Espacio Personal
+   Mobile First · PWA standalone · ~393px (Xiaomi 15)
+   Breakpoints: 360 · 393 · 480 · 768 · 1024
+   ═══════════════════════════════════════════════════ */
+
+/* ── Base: evitar scroll horizontal ── */
+html { overflow-x: hidden; }
+body { overflow-x: hidden; }
+#app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+/* ── Header (mobile first) ── */
+.app-header {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 0 var(--space-4);
+  padding-top: var(--safe-top);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--touch-min);
+  height: auto;
+  min-height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  border-bottom: 2px solid var(--gold);
+  flex-shrink: 0;
+}
+.logo {
+  font-family: var(--font-serif);
+  font-size: var(--text-md);
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+.logo em { color: var(--gold); font-style: italic; }
+.header-date {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: rgba(245,240,232,0.45);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: none;
+}
+.header-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+.header-actions .btn {
+  min-height: var(--touch-min);
+  padding: 0.5rem var(--space-3);
+}
+
+/* ── Top nav: oculto en móvil ── */
+.nav-tabs {
+  display: none;
+  background: var(--warm-white);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tabs-inner {
+  display: flex;
+  gap: 0;
+  padding: 0 var(--space-4);
+  width: max-content;
+  min-width: 100%;
+}
+.tab {
+  padding: 0.75rem var(--space-4);
+  min-height: var(--touch-min);
+  border: none;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--ink-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: all var(--duration);
+}
+.tab.active { color: var(--ink); border-bottom-color: var(--gold); font-weight: 600; }
+.tab:hover:not(.active) { color: var(--ink-light); }
+
+/* ── Bottom nav (solo móvil) ── */
+.bottom-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: var(--warm-white);
+  border-top: 1px solid var(--border);
+  padding: var(--space-2) var(--space-1);
+  padding-bottom: calc(var(--space-2) + var(--safe-bottom));
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 150;
+  flex-shrink: 0;
+}
+.bottom-nav .nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--space-2) var(--space-1);
+  min-height: var(--touch-min);
+  border: none;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: color var(--duration), background var(--duration);
+  border-radius: var(--radius);
+  -webkit-tap-highlight-color: transparent;
+}
+.bottom-nav .nav-item:active { background: var(--cream); }
+.bottom-nav .nav-item.active { color: var(--gold); font-weight: 700; }
+.bottom-nav .nav-item .nav-icon { font-size: 1.35rem; line-height: 1; }
+
+/* ── Drawer "Más" (overlay) ── */
+.drawer-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(26,23,20,0.5);
+  backdrop-filter: blur(4px);
+  z-index: 400;
+  animation: fadeIn 0.2s var(--ease);
+}
+.drawer-overlay.open { display: block; }
+.drawer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 70vh;
+  background: var(--warm-white);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--space-5) var(--space-4) calc(var(--space-6) + var(--safe-bottom));
+  box-shadow: 0 -8px 32px rgba(26,23,20,0.15);
+  z-index: 401;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.3s var(--ease);
+}
+.drawer.open { transform: translateY(0); }
+.drawer-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+.drawer-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4);
+  min-height: var(--touch-min);
+  border: none;
+  background: var(--cream);
+  border-radius: var(--radius);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  margin-bottom: var(--space-2);
+  transition: background var(--duration);
+  -webkit-tap-highlight-color: transparent;
+}
+.drawer-link:active { background: var(--border-light); }
+.drawer-link .drawer-link-icon { font-size: 1.25rem; }
+
+/* ── Main content ── */
+.main-content {
+  flex: 1;
+  padding: var(--space-4);
+  padding-bottom: calc(80px + var(--safe-bottom) + var(--space-4));
+  max-width: 1360px;
+  margin: 0 auto;
+  width: 100%;
+  min-width: 0;
+}
+
+/* ── Panels ── */
+.panel { display: none; }
+.panel.active { display: block; animation: fadeIn 0.2s var(--ease); }
+
+/* ── Grids (mobile first: 1 col) ── */
+.grid-4,
+.grid-3,
+.grid-2 {
+  display: grid;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+.grid-4 { grid-template-columns: 1fr; }
+.grid-3 { grid-template-columns: 1fr; }
+.grid-2 { grid-template-columns: 1fr; }
+.grid-main { display: grid; grid-template-columns: 1fr; gap: var(--space-4); margin-bottom: var(--space-5); }
+.grid-sidebar { display: flex; flex-direction: column; gap: var(--space-4); }
+
+/* 360px+ */
+@media (min-width: 360px) {
+  .main-content { padding-left: var(--space-4); padding-right: var(--space-4); }
+}
+
+/* 393px (Xiaomi 15) — 2 cols stat cards ── */
+@media (min-width: 393px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* 480px ── */
+@media (min-width: 480px) {
+  .main-content { padding: var(--space-5); padding-bottom: calc(80px + var(--safe-bottom) + var(--space-5)); }
+  .grid-4 { gap: var(--space-4); }
+}
+
+/* 768px: top nav visible, bottom nav oculto ── */
+@media (min-width: 768px) {
+  .nav-tabs { display: block; top: 60px; }
+  .app-header { min-height: 60px; height: 60px; }
+  .header-date { display: block; }
+  .bottom-nav { display: none; }
+  .main-content {
+    padding: var(--space-6);
+    padding-bottom: var(--space-6);
+  }
+  .grid-main { grid-template-columns: 2fr 1fr; }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* 900px ── */
+@media (min-width: 900px) {
+  .grid-main { grid-template-columns: 2fr 1fr; }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* 1024px ── */
+@media (min-width: 1024px) {
+  .main-content { padding: var(--space-6); }
+}
+
+/* ── Footer spacer (para bottom nav en móvil) ── */
+.footer-spacer {
+  height: 0;
+}
+@media (max-width: 767px) {
+  .footer-spacer {
+    height: calc(72px + var(--safe-bottom));
+  }
+}

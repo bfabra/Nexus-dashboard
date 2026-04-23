@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Dashboard personal: proyectos, lectura, diario, PNL y más.">
+<meta name="theme-color" content="#1C1917">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Mi Espacio">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Nexus</title>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/layout.css">
+</head>
+<body>
+<div id="app">
+
+<!-- ═══════ HEADER ═══════ -->
+<header class="app-header">
+  <div class="logo">Mi <em>Espacio</em></div>
+  <div class="header-date" id="headerDate"></div>
+  <div class="header-actions">
+    <button class="btn btn-sm btn-ghost" style="color:var(--cream);border-color:#555;" onclick="openLogModal()">+ Diario</button>
+    <button class="btn btn-sm btn-gold" onclick="openTaskModal()">+ Tarea</button>
+    <button class="btn btn-sm btn-ghost" style="color:var(--cream);border-color:#555;" onclick="window.lockNow && lockNow()">🔒 Bloquear</button>
+  </div>
+</header>
+
+<!-- ═══════ INSTALL BANNER ═══════ -->
+<div id="installBanner" style="display:none;">
+  <div>
+    <strong>📱 Instalar como app</strong>
+    <p>Accede rápido desde tu pantalla de inicio, sin navegador.</p>
+  </div>
+  <div style="display:flex;gap:0.5rem;flex-shrink:0;">
+    <button class="btn btn-sm" style="background:white;color:#1F5FBF;font-weight:700;" onclick="installPWA()">Instalar</button>
+    <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;" onclick="dismissInstall()">Ahora no</button>
+  </div>
+</div>
+
+<!-- ═══════ NAVIGATION (desktop: tabs) ═══════ -->
+<nav class="nav-tabs" aria-label="Navegación principal">
+  <div class="nav-tabs-inner">
+    <button class="tab active" data-tab="hoy" onclick="switchTab('hoy',this)">🌅 Hoy</button>
+    <button class="tab" data-tab="mes" onclick="switchTab('mes',this)">📅 Mes</button>
+    <button class="tab" data-tab="proyectos" onclick="switchTab('proyectos',this)">💻 Proyectos</button>
+    <button class="tab" data-tab="cursos" onclick="switchTab('cursos',this)">📚 Cursos</button>
+    <button class="tab" data-tab="series" onclick="switchTab('series',this)">👩🏽‍💻 Series</button>
+    <button class="tab" data-tab="lectura" onclick="switchTab('lectura',this)">📖 Lectura</button>
+    <button class="tab" data-tab="xhilos" onclick="switchTab('xhilos',this)">✍️ Hilos X</button>
+    <button class="tab" data-tab="diario" onclick="switchTab('diario',this)">📓 Diario</button>
+    <button class="tab" data-tab="ajustes" onclick="switchTab('ajustes',this)">⚙️ Ajustes</button>
+  </div>
+</nav>
+
+<!-- ═══════ BOTTOM NAV (móvil) ═══════ -->
+<nav class="bottom-nav" aria-label="Navegación móvil">
+  <button type="button" class="nav-item active" data-tab="hoy" onclick="switchTab('hoy',this); closeDrawer();"><span class="nav-icon">🌅</span><span>Hoy</span></button>
+  <button type="button" class="nav-item" data-tab="mes" onclick="switchTab('mes',this); closeDrawer();"><span class="nav-icon">📅</span><span>Mes</span></button>
+  <button type="button" class="nav-item" data-tab="proyectos" onclick="switchTab('proyectos',this); closeDrawer();"><span class="nav-icon">💻</span><span>Proyectos</span></button>
+  <button type="button" class="nav-item" data-tab="cursos" onclick="switchTab('cursos',this); closeDrawer();"><span class="nav-icon">📚</span><span>Cursos</span></button>
+  <button type="button" class="nav-item nav-item-more" data-tab="more" onclick="openDrawer();"><span class="nav-icon">⋯</span><span>Más</span></button>
+</nav>
+
+<!-- ═══════ DRAWER "Más" (móvil) ═══════ -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()" aria-hidden="true"></div>
+<div class="drawer" id="drawer" role="dialog" aria-label="Más secciones">
+  <div class="drawer-title">Más secciones</div>
+  <button type="button" class="drawer-link" onclick="switchTab('series',null); closeDrawer();"><span class="drawer-link-icon">👩🏽‍💻</span> Series</button>
+  <button type="button" class="drawer-link" onclick="switchTab('lectura',null); closeDrawer();"><span class="drawer-link-icon">📖</span> Lectura</button>
+  <button type="button" class="drawer-link" onclick="switchTab('xhilos',null); closeDrawer();"><span class="drawer-link-icon">✍️</span> Hilos X</button>
+  <button type="button" class="drawer-link" onclick="switchTab('diario',null); closeDrawer();"><span class="drawer-link-icon">📓</span> Diario</button>
+  <button type="button" class="drawer-link" onclick="switchTab('ajustes',null); closeDrawer();"><span class="drawer-link-icon">⚙️</span> Ajustes</button>
+</div>
+
+<!-- ═══════ MAIN ═══════ -->
+<main class="main-content">
+
+  <!-- ═══ HOY ═══ -->
+  <div class="panel active" id="panel-hoy">
+    <div class="vacation-banner" id="vacationBanner">
+      <div>
+        <div class="vacation-title">🌴 Vacaciones se acercan</div>
+        <div class="vacation-sub">21 Mar – 10 Abr · ¡Tiempo de descanso!</div>
+      </div>
+      <div style="text-align:center;">
+        <div class="vacation-countdown" id="vacCountdown">—</div>
+        <div class="vacation-days-label">días restantes</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:var(--space-5);">
+      <div class="card-title"><div class="card-title-left">📅 Esta Semana</div></div>
+      <div class="week-strip" id="weekStrip"></div>
+      <div id="dayWorkInfo" style="font-size:var(--text-sm);color:var(--ink-muted);margin-top:var(--space-2);"></div>
+      <div id="weekDaySummary" style="display:none;font-size:var(--text-sm);color:var(--ink-muted);margin-top:var(--space-2);padding-top:var(--space-2);border-top:1px solid var(--border-light);"></div>
+    </div>
+
+    <div class="grid-4">
+      <div class="stat-card gold">
+        <div class="stat-label">Proyectos</div>
+        <div class="stat-value" id="statProjects">—</div>
+        <div class="stat-sub">en desarrollo</div>
+        <div class="progress-wrap" style="margin-top:var(--space-3);">
+          <div class="progress-bar"><div class="progress-fill fill-gold" id="statProjectsBar" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="stat-card violet">
+        <div class="stat-label">Cursos Activos</div>
+        <div class="stat-value" id="statCourses">—</div>
+        <div class="stat-sub">en progreso</div>
+        <div class="progress-wrap" style="margin-top:var(--space-3);">
+          <div class="progress-bar"><div class="progress-fill fill-violet" id="statCoursesBar" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="stat-card sage">
+        <div class="stat-label">PNL · Diplomado</div>
+        <div class="stat-value" id="pnlStatVal">—</div>
+        <div class="stat-sub">temas completados</div>
+        <div class="progress-wrap" style="margin-top:var(--space-3);">
+          <div class="progress-bar"><div class="progress-fill fill-sage" id="pnlStatBar" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="stat-card rose">
+        <div class="stat-label">Lectura 2026</div>
+        <div class="stat-value" id="booksRead">—</div>
+        <div class="stat-sub" id="booksTotalSub">de 8 libros meta</div>
+        <div class="progress-wrap" style="margin-top:var(--space-3);">
+          <div class="progress-bar"><div class="progress-fill fill-rose" id="booksProgress" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-main">
+      <div class="card">
+        <div class="section-header">
+          <div class="section-title" id="todayTasksTitle">✅ Tareas de Hoy</div>
+          <button class="btn btn-gold btn-sm" onclick="openTaskModal()">+ Nueva</button>
+        </div>
+        <div id="todayTasks"></div>
+      </div>
+      <div class="grid-sidebar">
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">⏰ Vencimientos clave  🔔</div></div>
+          <div id="upcomingDeadlines"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">𝕏 Próximo Hilo 🔔</div></div>
+          <div id="nextXDate"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card habits-card" style="margin-top:var(--space-5);">
+      <div class="section-header">
+        <div class="section-title" style="font-size:var(--text-xl);">📌 Hábitos Diarios</div>
+      </div>
+      <div id="habitsTableWrap"></div>
+    </div>
+  </div>
+
+  <!-- ═══ MES ═══ -->
+  <div class="panel" id="panel-mes">
+    <div class="month-nav">
+      <button class="month-nav-btn" onclick="changeMonth(-1)">‹</button>
+      <div style="text-align:center;">
+        <div class="month-nav-title" id="monthNavTitle"></div>
+        <div style="font-size:var(--text-xs);color:var(--ink-muted);margin-top:2px;" id="monthNavSub"></div>
+      </div>
+      <button class="month-nav-btn" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="month-summary-grid" id="monthStatCards"></div>
+    <div class="month-history-tabs">
+      <button class="mh-tab active" onclick="switchMonthTab('calendario',this)">📆 Calendario</button>
+      <button class="mh-tab" onclick="switchMonthTab('tareas',this)">✅ Tareas</button>
+      <button class="mh-tab" onclick="switchMonthTab('diario',this)">📓 Diario</button>
+      <button class="mh-tab" onclick="switchMonthTab('progreso',this)">📊 Progreso</button>
+    </div>
+    <div id="mtab-calendario">
+      <div class="card" style="overflow:hidden;"><div class="cal-grid" id="calGrid"></div></div>
+      <div class="day-detail-panel" id="dayDetailPanel">
+        <button class="day-detail-close" onclick="closeDayDetail()">✕</button>
+        <div class="day-detail-title" id="dayDetailTitle"></div>
+        <div id="dayDetailContent"></div>
+      </div>
+    </div>
+    <div id="mtab-tareas" style="display:none;">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">✅ Completadas</div></div>
+          <div id="monthTasksDone"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">⏳ Pendientes</div></div>
+          <div id="monthTasksPending"></div>
+        </div>
+      </div>
+    </div>
+    <div id="mtab-diario" style="display:none;">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">📓 Entradas del mes</div></div>
+          <div id="monthDiaryEntries"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">😊 Estado de ánimo</div></div>
+          <div id="monthMoodChart"></div>
+        </div>
+      </div>
+    </div>
+    <div id="mtab-progreso" style="display:none;">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">💻 Proyectos</div></div>
+          <div id="monthProyectosProg"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">📖 Lectura</div></div>
+          <div id="monthLecturaProg"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">📚 Cursos</div></div>
+          <div id="monthCursosProg"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">✍️ Hilos X</div></div>
+          <div id="monthHilosProg"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PROYECTOS ═══ -->
+  <div class="panel" id="panel-proyectos">
+    <div class="section-header">
+      <div class="section-title" style="font-size:var(--text-xl);">💻 Proyectos</div>
+      <button class="btn btn-primary" onclick="window.openProyectoModal && openProyectoModal(-1)">+ Nuevo proyecto</button>
+    </div>
+    <div id="proyectosList"></div>
+  </div>
+
+  <!-- ═══ CURSOS ═══ -->
+  <div class="panel" id="panel-cursos">
+    <div class="section-header">
+      <div class="section-title" style="font-size:var(--text-xl);">📚 Cursos Activos</div>
+      <button class="btn btn-primary btn-sm" onclick="window.openCourseModal && openCourseModal(-1)">+ Nuevo curso</button>
+    </div>
+    <div id="coursesList"></div>
+    <div class="card" style="margin-top:var(--space-4); background:linear-gradient(135deg,#FEF3C7,#FFF8E7); border-color:#FDE68A;" id="testBecaCard"></div>
+
+    <!-- 🧠 Diplomado PNL (incluido en Cursos) -->
+    <div class="course-escuela-section" style="margin-top:var(--space-5);">
+      <div class="course-escuela-title">🧠 Diplomado PNL</div>
+    </div>
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="progress-wrap">
+        <div class="progress-label"><span id="pnlProgressLabel">Progreso del diplomado</span><span></span></div>
+        <div class="progress-bar" style="height:10px;"><div class="progress-fill fill-sage" id="pnlProgressBar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="grid-main">
+      <div class="card">
+        <div class="card-title"><div class="card-title-left">📋 Módulos del Diplomado</div></div>
+        <div class="topic-grid" id="pnlGrid"></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="card-title-left">📝 Mis Notas</div></div>
+        <div class="form-group">
+          <label class="form-label">Tema</label>
+          <select class="select-field" id="pnlTopicSelect"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notas</label>
+          <textarea class="textarea-field" id="pnlNotes" rows="8" placeholder="Escribe tus apuntes sobre este tema..."></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="savePnlNote()">Guardar nota</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SERIES / PELÍCULAS ═══ -->
+  <div class="panel" id="panel-series">
+    <div class="section-header">
+      <div class="section-title" style="font-size:var(--text-xl);">👩🏽‍💻 Series</div>
+      <button class="btn btn-primary btn-sm" onclick="window.openMediaModal && window.openMediaModal()">+ Agregar</button>
+    </div>
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select id="mediaFilterType" class="select-field" onchange="window.renderMedia && renderMedia()">
+            <option value="all">Todos</option>
+            <option value="series">Series</option>
+            <option value="peliculas">Películas</option>
+            <option value="gl">GL</option>
+            <option value="kdramas">Kdramas</option>
+            <option value="cdramas">CDramas</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado</label>
+          <select id="mediaFilterStatus" class="select-field" onchange="window.renderMedia && renderMedia()">
+            <option value="all">Todos</option>
+            <option value="no_iniciada">No iniciada</option>
+            <option value="en_proceso">En proceso</option>
+            <option value="visto">Visto</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div id="mediaList"></div>
+    </div>
+  </div>
+
+  <!-- ═══ LECTURA ═══ -->
+  <div class="panel" id="panel-lectura">
+    <div class="grid-main">
+      <div>
+        <div class="section-header">
+          <div class="section-title" style="font-size:var(--text-xl);">📖 Lista de Lectura 2026</div>
+          <button class="btn btn-primary btn-sm" onclick="window.openBookModal && openBookModal(-1)">+ Nuevo libro</button>
+        </div>
+        <div class="book-filters" style="display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center;margin-bottom:var(--space-3);font-size:var(--text-sm);">
+          <label>Clasificar por:</label>
+          <select id="bookFilterBy" class="select-field" style="width:auto;" onchange="window.renderBookList && renderBookList()">
+            <option value="todos">Todos</option>
+            <option value="iniciados">Iniciados en (mes/año)</option>
+            <option value="finalizados">Finalizados en (mes/año)</option>
+          </select>
+          <select id="bookFilterYear" class="select-field" style="width:auto;" onchange="window.renderBookList && renderBookList()">
+            <option value="">— Año —</option>
+          </select>
+          <select id="bookFilterMonth" class="select-field" style="width:auto;" onchange="window.renderBookList && renderBookList()">
+            <option value="">— Mes —</option>
+            <option value="1">Enero</option>
+            <option value="2">Febrero</option>
+            <option value="3">Marzo</option>
+            <option value="4">Abril</option>
+            <option value="5">Mayo</option>
+            <option value="6">Junio</option>
+            <option value="7">Julio</option>
+            <option value="8">Agosto</option>
+            <option value="9">Septiembre</option>
+            <option value="10">Octubre</option>
+            <option value="11">Noviembre</option>
+            <option value="12">Diciembre</option>
+          </select>
+        </div>
+        <div class="card">
+          <div id="bookList"></div>
+        </div>
+      </div>
+      <div class="grid-sidebar">
+        <div class="card">
+          <div class="card-title"><div class="card-title-left">📘 Leyendo ahora</div></div>
+          <div id="currentBookCard"></div>
+        </div>
+        <div class="stat-card rose">
+          <div class="stat-label">Meta 2026</div>
+          <div class="stat-value" id="booksRead2">—</div>
+          <div class="stat-sub" id="booksTotalSub2">de 8 libros</div>
+          <div class="progress-wrap" style="margin-top:var(--space-3);">
+            <div class="progress-bar"><div class="progress-fill fill-rose" id="booksProgress2" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ HILOS X ═══ -->
+  <div class="panel" id="panel-xhilos">
+    <div class="grid-main">
+      <div>
+        <div class="section-header">
+          <div class="section-title" style="font-size:var(--text-xl);">✍️ Calendario de Hilos °•° </div>
+        </div>
+ 
+        <div class="card" style="margin-bottom:var(--space-4);">
+          <div id="xDatesList"></div>
+        </div>
+        <div class="section-header">
+          <div class="section-title">📄 Borradores</div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('xDraftModal')">+ Borrador</button>
+        </div>
+        <div id="xDraftsList"></div>
+      </div>
+      <div class="grid-sidebar">
+        <div class="card" style="background:var(--ink);color:var(--cream);">
+          <div style="font-family:var(--font-serif);font-size:var(--text-lg);font-weight:700;margin-bottom:var(--space-2);">📅 Frecuencia</div>
+          <div style="font-size:var(--text-sm);opacity:0.75;line-height:1.7;">
+            Publicación los días <strong>1, 15</strong> y último del mes.<br>
+            Calendario <strong>Ene–Dic 2026</strong>
+          </div>
+          <div style="margin-top:var(--space-4);font-size:var(--text-xs);opacity:0.5;font-family:var(--font-mono);">🟢 = Publicado · 🟡 = Pendiente</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ DIARIO ═══ -->
+  <div class="panel" id="panel-diario">
+    <div class="section-header">
+      <div class="section-title" style="font-size:var(--text-xl);">📓 Diario Personal</div>
+      <div style="display:flex;gap:var(--space-2);flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="openLogModal()">+ Nueva entrada</button>
+        <button class="btn btn-ghost" style="border-color:var(--gold);color:var(--gold-hover);" onclick="openPlannerModal()"> + 🧠 Planner emocional</button>
+      </div>
+    </div>
+
+    <div class="section-header" style="margin-top:var(--space-4);">
+      <div class="section-title">Entradas libres</div>
+    </div>
+    <div id="diaryList"></div>
+
+    <div class="section-header" style="margin-top:var(--space-5);">
+      <div class="section-title">🧠 Planner emocional</div>
+    </div>
+    <p style="font-size:var(--text-sm);color:var(--ink-muted);margin-bottom:var(--space-3);">Registros de Mañana, Durante el día y Noche por fecha.</p>
+    <div id="plannerEmocionalList"></div>
+  </div>
+
+  <!-- ═══ AJUSTES ═══ -->
+  <div class="panel" id="panel-ajustes">
+    <div class="section-title" style="font-size:var(--text-xl);margin-bottom:var(--space-5);">⚙️ Ajustes y Datos</div>
+
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-title"><div class="card-title-left">🔒 Seguridad / Acceso</div></div>
+      <p style="font-size:var(--text-sm);color:var(--ink-muted);margin-bottom:var(--space-3);line-height:1.6;">
+        Protege tu tablero con usuario y un <strong>PIN numérico de 4 dígitos</strong>. Se guardan solo en este dispositivo (localStorage).
+      </p>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Usuario</label>
+          <input type="text" class="input-field" id="authUser" autocomplete="username" placeholder="Tu usuario para entrar">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nuevo PIN (4 dígitos)</label>
+          <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="input-field" id="authNewPassword" autocomplete="new-password" placeholder="••••">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Repetir PIN</label>
+          <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="input-field" id="authNewPassword2" autocomplete="new-password" placeholder="••••">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pista (opcional, se muestra en la pantalla de acceso)</label>
+        <input type="text" class="input-field" id="authHint" maxlength="80" placeholder="Ej: Nombre de mi serie favorita">
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+          <input type="checkbox" id="authRemember">
+          Mantener sesión iniciada en este dispositivo (máx. 12 horas)
+        </label>
+      </div>
+      <div class="sync-actions" style="margin-top:var(--space-3);gap:var(--space-2);">
+        <button class="btn-sync" onclick="window.saveAuthSettings && saveAuthSettings()">💾 Guardar / actualizar clave</button>
+        <button class="btn-sync" onclick="window.disableAuth && disableAuth()" style="color:#DC2626;border-color:#FCA5A5;">🧹 Quitar clave</button>
+      </div>
+      <p id="authStatusText" style="font-size:var(--text-xs);color:var(--ink-muted);margin-top:var(--space-2);"></p>
+    </div>
+
+    <div class="sync-card">
+      <div class="sync-title">🔄 Sincronización entre dispositivos</div>
+      <div class="sync-sub">Exporta tu backup JSON y ábrelo en otro dispositivo para mantener todo sincronizado.</div>
+      <div class="sync-actions">
+        <button class="btn-sync" onclick="exportData()">⬇️ Exportar backup</button>
+        <button class="btn-sync" onclick="importData()">⬆️ Importar backup</button>
+        <button class="btn-sync" onclick="copyDataToClipboard()">📋 Copiar al portapapeles</button>
+      </div>
+    </div>
+
+    <div class="card origin-sync-card" style="margin-bottom:var(--space-4);">
+      <div class="card-title"><div class="card-title-left">🌐 Origen actual y sincronización</div></div>
+      <div id="originSyncNotice" style="font-size:var(--text-sm);color:var(--ink-muted);">Detectando entorno...</div>
+    </div>
+
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-title"><div class="card-title-left">📱 Instalar como App</div></div>
+      <p style="font-size:var(--text-sm);color:var(--ink-muted);margin-bottom:var(--space-3);line-height:1.6;">
+        Instala <strong>Mi Espacio</strong> como aplicación: acceso rápido desde la pantalla de inicio, sin barra del navegador y con soporte offline.
+      </p>
+      <div id="installPWAWrap"><p style="font-size:var(--text-sm);color:var(--ink-muted);">Cargando…</p></div>
+    </div>
+
+    <div class="card" style="margin-bottom:var(--space-4);">
+      <div class="card-title"><div class="card-title-left">📊 Estado de los datos</div></div>
+      <div id="dataStats" style="font-size:var(--text-sm);color:var(--ink-muted);line-height:2;"></div>
+    </div>
+
+    <div class="card" style="border-color:#FCA5A5;">
+      <div class="card-title" style="color:#DC2626;"><div class="card-title-left">⚠️ Zona de peligro</div></div>
+      <p style="font-size:var(--text-sm);color:var(--ink-muted);margin-bottom:var(--space-4);">Esta acción eliminará permanentemente todos tus datos. No se puede deshacer.</p>
+      <button class="btn btn-ghost" style="border-color:#FCA5A5;color:#DC2626;" onclick="resetAllData()">🗑️ Borrar todos los datos</button>
+    </div>
+  </div>
+
+</main>
+<div class="footer-spacer"></div>
+</div><!-- /#app -->
+
+<!-- Capa de acceso / login -->
+<div id="authOverlay" class="auth-overlay" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-title">🔒 Mi Espacio</div>
+    <p class="auth-sub">Escribe tu usuario y PIN de 4 dígitos para entrar a tu tablero.</p>
+    <p id="authHintText" class="auth-hint"></p>
+    <div class="form-group">
+      <label class="form-label">Usuario</label>
+      <input type="text" class="input-field" id="authLoginUser" autocomplete="username" placeholder="Tu usuario">
+    </div>
+    <div class="form-group">
+      <label class="form-label">PIN (4 dígitos)</label>
+      <input type="password" pattern="[0-9]*" inputmode="numeric" maxlength="4" class="input-field" id="authPasswordInput" autocomplete="current-password" placeholder="••••">
+    </div>
+    <div class="auth-actions">
+      <button class="btn btn-primary" onclick="window.submitLogin && submitLogin()">Entrar</button>
+    </div>
+    <p class="auth-footer">Si olvidas la clave, puedes borrar los datos desde la configuración del navegador (Storage de este sitio).</p>
+  </div>
+</div>
+
+<!-- ═══════ MODALES ═══════ -->
+
+<!-- Modal: Nueva Tarea -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <h3 id="taskModalTitle">✅ Nueva Tarea</h3>
+    <input type="hidden" id="taskEditIndex" value="">
+    <div class="form-group">
+      <label class="form-label">Tarea *</label>
+      <input type="text" class="input-field" id="taskName" placeholder="¿Qué tienes que hacer?">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Categoría</label>
+        <select class="select-field" id="taskCat">
+          <option value="proyecto">💻 Proyecto</option>
+          <option value="curso">📚 Curso</option>
+          <option value="lectura">📖 Lectura</option>
+          <option value="pnl">🧠 PNL</option>
+          <option value="hilo">✍️ Hilo X</option>
+          <option value="trabajo">🏢 Trabajo</option>
+          <option value="personal">🌱 Personal</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Prioridad</label>
+        <select class="select-field" id="taskPrio">
+          <option value="alta">🔴 Alta</option>
+          <option value="media" selected>🟡 Media</option>
+          <option value="baja">🟢 Baja</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fecha</label>
+      <input type="date" class="input-field" id="taskDate">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTask()">Guardar tarea</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nueva Entrada Diario -->
+<div class="modal-overlay" id="logModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <input type="hidden" id="logEditIndex" value="">
+    <h3>📓 Nueva Entrada</h3>
+    <div class="form-group">
+      <label class="form-label">¿Cómo te sientes hoy?</label>
+      <div class="mood-selector">
+        <button class="mood-btn" data-mood="😊 Bien" onclick="setMood('😊 Bien')">😊 Bien</button>
+        <button class="mood-btn" data-mood="🤩 Excelente" onclick="setMood('🤩 Excelente')">🤩 Excelente</button>
+        <button class="mood-btn" data-mood="😍 Maravilloso" onclick="setMood('😍 Maravilloso')">😍 Maravilloso</button>
+        <button class="mood-btn" data-mood="😐 Regular" onclick="setMood('😐 Regular')">😐 Regular</button>
+        <button class="mood-btn" data-mood="😔 Cansado" onclick="setMood('😔 Cansado')">😔 Cansado</button>
+        <button class="mood-btn" data-mood="😰 Estresado" onclick="setMood('😰 Estresado')">😰 Estresado</button>
+        <button class="mood-btn" data-mood="🙏 Agradecido" onclick="setMood('🙏 Agradecido')">🙏 Agradecido</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Entrada *</label>
+      <textarea class="textarea-field" id="logText" rows="5" placeholder="¿Cómo fue tu día? ¿Qué aprendiste? ¿Qué sientes?"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Etiquetas (separadas por coma)</label>
+      <input type="text" class="input-field" id="logTags" placeholder="reflexion, trabajo, pnl...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveLog()">Guardar entrada</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Series / Películas -->
+<div class="modal-overlay" id="mediaModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <input type="hidden" id="mediaEditId" value="">
+    <h3>👩🏽‍💻 Agregar a Series</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Icono</label>
+        <input type="text" class="input-field" id="mediaIcon" placeholder="🎬 🍿 🇰🇷" maxlength="4">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <select class="select-field" id="mediaType">
+          <option value="">—</option>
+          <option value="series">Series</option>
+          <option value="peliculas">Películas</option>
+          <option value="gl">GL</option>
+          <option value="kdramas">Kdramas</option>
+          <option value="cdramas">CDramas</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Título *</label>
+      <input type="text" class="input-field" id="mediaTitle" placeholder="Nombre de la serie/película">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <select class="select-field" id="mediaStatus">
+          <option value="">—</option>
+          <option value="no_iniciada">No iniciada</option>
+          <option value="en_proceso">En proceso</option>
+          <option value="visto">Visto</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Origen</label>
+        <select class="select-field" id="mediaSource">
+          <option value="">—</option>
+          <option value="netflix">Netflix</option>
+          <option value="telegram">Telegram</option>
+          <option value="youtube">YouTube</option>
+          <option value="otra">Otra</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas</label>
+        <input type="text" class="input-field" id="mediaNotes" placeholder="Temporada 2 · ep 7 · etc.">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+      <button class="btn btn-primary" type="button" onclick="window.saveMedia && saveMedia()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Planner emocional -->
+<div class="modal-overlay" id="plannerModal">
+  <div class="modal modal-planner">
+    <span class="modal-handle"></span>
+    <h3>🧠 Planner emocional</h3>
+    <label class="daily-log-date-label" style="margin-bottom:var(--space-3);">Fecha: <input type="date" id="dailyLogDate" class="input-field daily-log-date-input"></label>
+    <div id="dailyLogFormWrap"></div>
+    <div class="modal-actions" style="margin-top:var(--space-4);">
+      <button class="btn-cancel" onclick="closeModals()">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Editar / Nuevo curso -->
+<div class="modal-overlay" id="courseModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <input type="hidden" id="courseEditIndex" value="">
+    <h3>✏️ Editar curso</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Ícono</label>
+        <input type="text" class="input-field" id="courseIcon" placeholder="📚 🤖 🇬🇧" maxlength="4">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Nombre del curso *</label>
+        <input type="text" class="input-field" id="courseName" placeholder="Ej: Business English">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Escuela / Plataforma</label>
+      <input type="text" class="input-field" id="courseEscuela" placeholder="Ej: Platzi, Santander Open Academy">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Fecha límite</label>
+        <input type="text" class="input-field" id="courseDeadline" placeholder="Ej: 31 Dic 2026">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Progreso %</label>
+        <input type="number" class="input-field" id="coursePct" min="0" max="100" value="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+        <input type="checkbox" id="courseIsTest"> Es prueba/test (ej. BECA)
+      </label>
+    </div>
+    <div class="form-group" id="courseDoneWrap" style="display:none;">
+      <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+        <input type="checkbox" id="courseDone"> Completado
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+      <button class="btn btn-primary" onclick="window.saveCourse && saveCourse()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Libro (nuevo / editar) -->
+<div class="modal-overlay" id="bookModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <input type="hidden" id="bookEditIndex" value="">
+    <h3>📖 Nuevo libro</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Emoji</label>
+        <input type="text" class="input-field" id="bookEmoji" placeholder="📕 📗 ✅" maxlength="4">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">Título *</label>
+        <input type="text" class="input-field" id="bookTitle" placeholder="Nombre del libro">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Autor</label>
+      <input type="text" class="input-field" id="bookAuthor" placeholder="Autor">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Fecha inicio</label>
+        <input type="date" class="input-field" id="bookDateStarted" placeholder="YYYY-MM-DD">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha finalizó</label>
+        <input type="date" class="input-field" id="bookDateFinished" placeholder="YYYY-MM-DD">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Progreso %</label>
+        <input type="number" class="input-field" id="bookPct" min="0" max="100" value="0">
+      </div>
+      <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:0.25rem;">
+        <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
+          <input type="checkbox" id="bookDone"> Leído
+        </label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+      <button class="btn btn-primary" onclick="window.saveBook && saveBook()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nuevo / Editar Proyecto -->
+<div class="modal-overlay" id="proyectoModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <input type="hidden" id="proyectoEditIndex" value="-1">
+    <h3 id="proyectoModalTitle">💻 Nuevo Proyecto</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Nombre *</label>
+        <input type="text" class="input-field" id="pNombre" placeholder="LUNEXA, Vigoroso...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ícono</label>
+        <input type="text" class="input-field" id="pIcono" placeholder="💻 🚀 📱">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción</label>
+      <textarea class="textarea-field" id="pDesc" rows="3" placeholder="¿De qué se trata el proyecto?"></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Stack / Tipo</label>
+        <input type="text" class="input-field" id="pStack" placeholder="Web App, Mobile, API...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Estado</label>
+        <select class="select-field" id="pEstado">
+          <option value="planning">🟣 Planificación</option>
+          <option value="active">🟢 En desarrollo</option>
+          <option value="paused">🟡 Pausado</option>
+          <option value="done">✅ Completado</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Fecha de inicio</label>
+        <input type="text" class="input-field" id="pInicio" placeholder="Mar 2026">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Meta</label>
+        <input type="text" class="input-field" id="pMeta" placeholder="MVP Q2 2026">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveProyecto()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Log de Proyecto -->
+<div class="modal-overlay" id="proyectoLogModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <input type="hidden" id="proyectoLogIndex" value="">
+    <h3>📝 Registrar Avance</h3>
+    <div class="form-group">
+      <label class="form-label">Descripción del avance *</label>
+      <textarea class="textarea-field" id="logText" rows="4" placeholder="¿Qué lograste hoy en este proyecto?"></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Progreso total (%)</label>
+      <input type="number" class="input-field" id="logPct" min="0" max="100" placeholder="ej. 35">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+      <button class="btn btn-primary" type="button" id="btnGuardarAvance" onclick="window.saveProyectoLog && saveProyectoLog(); return false;">Guardar avance</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Editar texto de actualización -->
+<div class="modal-overlay" id="editLogModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <input type="hidden" id="editLogProjIndex" value="">
+    <input type="hidden" id="editLogLogIndex" value="">
+    <h3>✏️ Editar actualización</h3>
+    <div class="form-group">
+      <label class="form-label">Fecha</label>
+      <input type="date" class="input-field" id="editLogDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descripción del avance *</label>
+      <textarea class="textarea-field" id="editLogText" rows="4" placeholder="Texto del avance"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" type="button" onclick="closeModals()">Cancelar</button>
+      <button class="btn btn-primary" type="button" id="btnGuardarEditLog" onclick="window.saveEditLog && saveEditLog(); return false;">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Borrador Hilo X -->
+<div class="modal-overlay" id="xDraftModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <h3>✍️ Nuevo Borrador</h3>
+    <div class="form-group">
+      <label class="form-label">Título del hilo *</label>
+      <input type="text" class="input-field" id="xDraftTitle" placeholder="Ej: Cómo construí mi dashboard PWA">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Fecha objetivo</label>
+      <input type="date" class="input-field" id="xDraftDate">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ideas / Borrador</label>
+      <textarea class="textarea-field" id="xDraftContent" rows="5" placeholder="Ideas principales, estructura del hilo..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveXDraft()">Guardar borrador</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Editar publicación del calendario X -->
+<div class="modal-overlay" id="xEntryEditModal">
+  <div class="modal">
+    <span class="modal-handle"></span>
+    <h3>✍️ Editar publicación</h3>
+    <p style="font-size:var(--text-sm);color:var(--ink-muted);margin-bottom:var(--space-3);" id="xEntryEditDateLabel"></p>
+    <input type="hidden" id="xEntryEditIndex" value="">
+    <div class="form-group">
+      <label class="form-label">Título de la publicación</label>
+      <input type="text" class="input-field" id="xEntryEditTitle" placeholder="Ej: 🌿 Susurrar luz al alma">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Temas relevantes (opcional)</label>
+      <textarea class="textarea-field" id="xEntryEditTopics" rows="3" placeholder="Palabras clave, emociones, ideas del hilo..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancelar</button>
+      <button class="btn btn-primary" onclick="window.saveXEntryEdit && saveXEntryEdit()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast global -->
+<div class="toast" id="globalToast"></div>
+
+<script type="module" src="js/app.js"></script>
+<script>
+// Init fecha del taskDate y dailyLogDate a hoy
+window.addEventListener('DOMContentLoaded', () => {
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const td = document.getElementById('taskDate');
+  if (td) td.value = today;
+  const dld = document.getElementById('dailyLogDate');
+  if (dld) dld.value = today;
+
+  // Actualizar stats de datos en Ajustes
+  const statsEl = document.getElementById('dataStats');
+  if (statsEl) {
+    const update = () => {
+      try {
+        const d = JSON.parse(localStorage.getItem('mep_v4') || '{}');
+        const bytes = new Blob([JSON.stringify(d)]).size;
+        statsEl.innerHTML = `
+          Tareas: <strong>${(d.tasks||[]).length}</strong> · 
+          Diario: <strong>${(d.diary||[]).length} entradas</strong> · 
+          Borradores X: <strong>${(d.xDrafts||[]).length}</strong><br>
+          Proyectos: <strong>${(d.proyectos||[]).length}</strong> · 
+          Libros: <strong>${(d.books||[]).length}</strong><br>
+          Última actualización: <strong>${d._updatedAt ? new Date(d._updatedAt).toLocaleString('es-CO') : 'N/A'}</strong><br>
+          Tamaño del backup: <strong>~${(bytes/1024).toFixed(1)} KB</strong>
+        `;
+      } catch(e) {}
+    };
+    update();
+    // Exponer para actualizar desde módulos
+    window.updateDataStats = update;
+  }
+
+  // Sync shortcut en ajustes
+  window.copyDataToClipboard = () => {
+    import('./js/sync.js').then(m => m.copyDataToClipboard());
+  };
+});
+</script>
+</body>
+</html>
